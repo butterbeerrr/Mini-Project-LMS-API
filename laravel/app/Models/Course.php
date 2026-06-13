@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Course extends Model
 {
-    protected $fillable = ['instruction_id', 'category_id', 'title', 'description','rating', 'thumbnail', 'level', 'duration', 'status', 'enrolled_count'];
+    protected $fillable = ['instructor_id', 'category_id', 'title', 'description','rating', 'thumbnail', 'level', 'duration', 'status', 'enrolled_count'];
 
     public function category(){
         return $this->belongsTo(CourseCategory::class, 'category_id');
