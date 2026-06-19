@@ -61,7 +61,7 @@ class CourseController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, $id)
+    public function show(Request $request, string $id)
     {
         $course = Course::with(['category:id,name', 'instructor:id,name'])->find($id);
 
@@ -93,8 +93,14 @@ class CourseController extends Controller
      */
     public function store(Request $request)
     {
+        if($request->user()->role !== 'instructor'){
+            return response()->json([
+                'success' => false,
+                'message' => 'Only instructors can create courses',
+            ], 403);
+        }
+
         $validator = Validator::make($request->all(), [
-            'instructor_id' => 'required|exists:users,id',
             'category_id' => 'required|exists:course_categories,id',
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -113,7 +119,10 @@ class CourseController extends Controller
             ], 422);
         }
 
-        $course = Course::create($request->all());
+        $data = $validator->validated();
+        $data['instructor_id'] = $request->user()->id;
+
+        $course = Course::create($data);
 
         return response()->json([
             'success' => true,
@@ -125,7 +134,7 @@ class CourseController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, string $id)
     {
         $course = Course::find($id);
 
@@ -136,8 +145,14 @@ class CourseController extends Controller
             ], 404);
         }
 
+        if($course->instructor_id !== $request->user()->id){
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not authorized to update this course',
+            ], 403);
+        }
+
         $validator = Validator::make($request->all(), [
-            'instructor_id'  => 'required|exists:users,id',
             'category_id'    => 'required|exists:course_categories,id',
             'title'          => 'required|string|max:255',
             'description'    => 'required|string',
@@ -157,7 +172,7 @@ class CourseController extends Controller
             ], 422);
         }
 
-        $course->update($request->all());
+        $course->update($validator->validated());
 
         return response()->json([
             'success' => true,
@@ -169,7 +184,7 @@ class CourseController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, $id)
+    public function destroy(Request $request, string $id)
     {
         $course = Course::find($id);
 
@@ -178,6 +193,13 @@ class CourseController extends Controller
                 'success' => false,
                 'message' => 'Course not found',
             ], 404);
+        }
+
+        if($course->instructor_id !== $request->user()->id){
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not authorized to delete this course',
+            ], 403);
         }
 
         $course->delete();
