@@ -42,7 +42,7 @@ class CourseCategoryController extends Controller
             ], 422);
         }
 
-        $category = CourseCategory::create($request->all());
+        $category = CourseCategory::create($validator->validated());
 
         return response()->json([
             'success' => true,
@@ -100,7 +100,7 @@ class CourseCategoryController extends Controller
             ], 422);
         }
 
-        $category->update($request->all());
+        $category->update($validator->validated());
 
         return response()->json([
             'success' => true,
@@ -129,7 +129,7 @@ class CourseCategoryController extends Controller
                 'message' => 'Cannot delete category with associated courses'
             ], 400);
         }
-        
+
         $category->delete();
 
         return response()->json([
